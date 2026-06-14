@@ -1,12 +1,35 @@
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { BookOpen, Users, Sparkles, MessageSquare, ArrowRight, GraduationCap } from 'lucide-react';
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import {
+  BookOpen,
+  Users,
+  Sparkles,
+  MessageSquare,
+  ArrowRight,
+  GraduationCap,
+} from "lucide-react";
 
 const features = [
-  { icon: BookOpen, title: 'Share Resources', desc: 'Upload PDFs, docs, videos and learn together' },
-  { icon: MessageSquare, title: 'Discussions', desc: 'Reddit-style threads for academic conversations' },
-  { icon: Sparkles, title: 'AI Assistant', desc: 'EduConnect AI powered by Claude with RAG' },
-  { icon: Users, title: 'Study Groups', desc: 'Collaborate in course and department groups' },
+  {
+    icon: BookOpen,
+    title: "Share Resources",
+    desc: "Upload PDFs, docs, videos and learn together",
+  },
+  {
+    icon: MessageSquare,
+    title: "Discussions",
+    desc: "Reddit-style threads for academic conversations",
+  },
+  {
+    icon: Sparkles,
+    title: "AI Assistant",
+    desc: "EduConnect AI powered by Groq Llama 3.3 with RAG",
+  },
+  {
+    icon: Users,
+    title: "Study Groups",
+    desc: "Collaborate in course and department groups",
+  },
 ];
 
 export default function LandingPage() {
@@ -18,8 +41,16 @@ export default function LandingPage() {
           <span className="text-white font-bold text-xl">EduConnect</span>
         </div>
         <div className="flex gap-4">
-          <Link to="/login" className="text-white/90 hover:text-white px-4 py-2">Login</Link>
-          <Link to="/register" className="bg-white text-primary-700 px-6 py-2 rounded-lg font-semibold hover:bg-primary-50">
+          <Link
+            to="/login"
+            className="text-white/90 hover:text-white px-4 py-2"
+          >
+            Login
+          </Link>
+          <Link
+            to="/register"
+            className="bg-white text-primary-700 px-6 py-2 rounded-lg font-semibold hover:bg-primary-50"
+          >
             Get Started
           </Link>
         </div>
@@ -31,7 +62,9 @@ export default function LandingPage() {
           animate={{ opacity: 1, y: 0 }}
           className="text-5xl md:text-6xl font-bold text-white mb-6"
         >
-          Connecting Students and Teachers<br />Through Collaborative Learning
+          Connecting Students and Teachers
+          <br />
+          Through Collaborative Learning
         </motion.h1>
         <motion.p
           initial={{ opacity: 0 }}
@@ -39,9 +72,14 @@ export default function LandingPage() {
           transition={{ delay: 0.2 }}
           className="text-xl text-primary-100 mb-10 max-w-2xl mx-auto"
         >
-          The educational social platform where knowledge meets community. Share resources, join discussions, and learn with AI-powered assistance.
+          The educational social platform where knowledge meets community. Share
+          resources, join discussions, and learn with AI-powered assistance.
         </motion.p>
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+        >
           <Link
             to="/register"
             className="inline-flex items-center gap-2 bg-white text-primary-700 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-primary-50 transition-colors"

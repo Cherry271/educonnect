@@ -1,143 +1,85 @@
-import { useState, useRef, useEffect } from 'react';
-import { Sparkles, Send, Paperclip, Mic, MoreVertical, Plus, HelpCircle, FileText, Link as LinkIcon } from 'lucide-react';
-import { aiApi } from '../api/client';
-import { useAuthStore } from '../store/authStore';
+import { useState, useRef, useEffect } from "react";
+import {
+  Sparkles,
+  Send,
+  Paperclip,
+  Mic,
+  MoreVertical,
+  Plus,
+  HelpCircle,
+  FileText,
+  Link as LinkIcon,
+} from "lucide-react";
+import { aiApi } from "../api/client";
+import { useAuthStore } from "../store/authStore";
+import toast from "react-hot-toast";
 
 interface Message {
   id: string;
-  sender: 'user' | 'ai';
+  sender: "user" | "ai";
   text: string;
   timestamp: string;
   aiProcessing?: boolean;
   concepts?: { title: string; points: string[] };
 }
 
-const initialMessages: Message[] = [
-  {
-    id: 'msg_1',
-    sender: 'ai',
-    text: "Hello Julian! I've analyzed your recent reading list on Quantum Mechanics. Would you like me to generate a summary or a practice quiz?",
-    timestamp: '10:02 AM'
-  },
-  {
-    id: 'msg_2',
-    sender: 'user',
-    text: "Let's start with a summary of the Schrödinger equation basics. I have a midterm on Friday.",
-    timestamp: '10:05 AM'
-  },
-  {
-    id: 'msg_3',
-    sender: 'ai',
-    text: "I've processed the request. Here is a 3-point summary of the core principles for your exam:",
-    timestamp: '10:05 AM',
-    aiProcessing: true,
-    concepts: {
-      title: 'Key Concepts for Exam:',
-      points: [
-        'Wave-Particle Duality: Every particle or quantum entity may be described as either a particle or a wave.',
-        'Uncertainty Principle: The more precisely the position of some particle is determined, the less precisely its momentum can be known.',
-        'Wavefunction Probability: The square of the wavefunction represents the probability density of finding the particle at a given point in space.'
-      ]
-    }
-  }
-];
-
 export default function AITutorView() {
   const { user } = useAuthStore();
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
-  const [inputText, setInputText] = useState('');
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
   const handleSend = async (textToSend: string) => {
     if (!textToSend.trim()) return;
 
-    const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    
+    const currentTime = new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
     // Add user message
     const userMsg: Message = {
       id: `msg_user_${Date.now()}`,
-      sender: 'user',
+      sender: "user",
       text: textToSend,
-      timestamp: currentTime
+      timestamp: currentTime,
     };
 
-    setMessages(prev => [...prev, userMsg]);
-    setInputText('');
+    setMessages((prev) => [...prev, userMsg]);
+    setInputText("");
     setIsLoading(true);
 
     try {
       // Call backend API
       const response = await aiApi.chat(textToSend, []);
-      const aiTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      
+      const aiTime = new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+
       const aiMsg: Message = {
         id: `msg_ai_${Date.now()}`,
-        sender: 'ai',
-        text: response.data.response || response.data.message || "Here is what I found...",
+        sender: "ai",
+        text:
+          response.data.response ||
+          response.data.message ||
+          response.data.text ||
+          "Here is what I found...",
         timestamp: aiTime,
-        aiProcessing: true
+        aiProcessing: false,
       };
 
-      setMessages(prev => [...prev, aiMsg]);
+      setMessages((prev) => [...prev, aiMsg]);
     } catch (e) {
-      console.log("Backend offline, running local mock responses", e);
-      
-      // Local simulated response delay
-      setTimeout(() => {
-        const aiTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        let replyText = "I'm processing your educational request. Let me know how else I can assist you with your exam prep.";
-        let conceptsObj = undefined;
-
-        const cleanText = textToSend.toLowerCase();
-        if (cleanText.includes('quiz')) {
-          replyText = "Here is a quick quiz to test your understanding of the Schrödinger equation and Quantum Mechanics:";
-          conceptsObj = {
-            title: 'Quick Practice Quiz:',
-            points: [
-              '1. What does the term Ψ (psi) represent in quantum mechanics? (Answer: The wavefunction)',
-              '2. State the time-independent Schrödinger equation. (Answer: HΨ = EΨ)',
-              '3. True or False: The energy levels of a particle in a 1D box are quantized. (Answer: True)'
-            ]
-          };
-        } else if (cleanText.includes('summarize') || cleanText.includes('summary')) {
-          replyText = "Here is a concise summary of the Schrödinger equation basics:";
-          conceptsObj = {
-            title: 'Schrödinger Basics Summary:',
-            points: [
-              'The Schrödinger equation describes how the quantum state of a physical system changes over time.',
-              'It uses operators (like the Hamiltonian) to solve for the energy states of particles.',
-              'Boundary conditions dictate which wavefunctions are physically acceptable, leading to quantized energy states.'
-            ]
-          };
-        } else if (cleanText.includes('cite') || cleanText.includes('reference')) {
-          replyText = "Here are the citations for the foundational papers on Quantum Mechanics:";
-          conceptsObj = {
-            title: 'APA & MLA Citations:',
-            points: [
-              'APA: Schrödinger, E. (1926). An undulatory theory of the mechanics of atoms and molecules. Physical Review, 28(6), 1049.',
-              'MLA: Schrödinger, Erwin. "An Undulatory Theory of the Mechanics of Atoms and Molecules." Physical Review, vol. 28, no. 6, 1926, pp. 1049–1070.'
-            ]
-          };
-        }
-
-        const aiMsg: Message = {
-          id: `msg_ai_${Date.now()}`,
-          sender: 'ai',
-          text: replyText,
-          timestamp: aiTime,
-          aiProcessing: true,
-          concepts: conceptsObj
-        };
-
-        setMessages(prev => [...prev, aiMsg]);
-        setIsLoading(false);
-      }, 1000);
-      return;
+      console.error("AI service unavailable.", e);
+      toast.error("AI assistant is unavailable. Please try again later.");
+    } finally {
+      setIsLoading(false);
     }
 
     setIsLoading(false);
@@ -147,10 +89,13 @@ export default function AITutorView() {
     setMessages([
       {
         id: `msg_ai_${Date.now()}`,
-        sender: 'ai',
-        text: `Hi ${user?.first_name || 'Julian'}! I've started a new session. How can I help you study today?`,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      }
+        sender: "ai",
+        text: `Hi ${user?.first_name || "there"}! I've started a new session. How can I help you study today?`,
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      },
     ]);
   };
 
@@ -168,7 +113,7 @@ export default function AITutorView() {
             </h1>
             <p className="text-xs text-gray-400 flex items-center gap-1.5 mt-0.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
-              GPT-4o Academic • Online
+              Groq · Llama 3.3 70B • Online
             </p>
           </div>
         </div>
@@ -189,16 +134,20 @@ export default function AITutorView() {
 
       {/* Message Feed */}
       <div className="flex-1 overflow-y-auto p-5 space-y-5">
-        {messages.map(msg => (
+        {messages.map((msg) => (
           <div key={msg.id} className="space-y-1.5">
-            <div className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-xs ${
-                msg.sender === 'user'
-                  ? 'bg-primary-400 text-dark-bg font-medium rounded-tr-none'
-                  : 'bg-[#1a1d1b] text-gray-100 border border-gray-900 rounded-tl-none'
-              }`}>
+            <div
+              className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+            >
+              <div
+                className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-xs ${
+                  msg.sender === "user"
+                    ? "bg-primary-400 text-dark-bg font-medium rounded-tr-none"
+                    : "bg-[#1a1d1b] text-gray-100 border border-gray-900 rounded-tl-none"
+                }`}
+              >
                 {msg.text}
-                
+
                 {msg.aiProcessing && (
                   <div className="flex items-center gap-1.5 mt-2 text-[10px] text-accent-tan font-bold">
                     <Sparkles size={10} />
@@ -207,10 +156,12 @@ export default function AITutorView() {
                 )}
               </div>
             </div>
-            
-            <p className={`text-[10px] text-gray-500 px-1 ${
-              msg.sender === 'user' ? 'text-right' : 'text-left'
-            }`}>
+
+            <p
+              className={`text-[10px] text-gray-500 px-1 ${
+                msg.sender === "user" ? "text-right" : "text-left"
+              }`}
+            >
               {msg.timestamp}
             </p>
 
@@ -222,13 +173,18 @@ export default function AITutorView() {
                   </h3>
                   <ol className="space-y-2 text-xs text-gray-300 list-decimal list-inside leading-relaxed">
                     {msg.concepts.points.map((p, idx) => {
-                      const splitIdx = p.indexOf(':');
+                      const splitIdx = p.indexOf(":");
                       if (splitIdx !== -1) {
                         const boldPart = p.substring(0, splitIdx + 1);
                         const normalPart = p.substring(splitIdx + 1);
                         return (
-                          <li key={idx} className="marker:text-gray-500 marker:font-bold">
-                            <span className="font-bold text-white">{boldPart}</span>
+                          <li
+                            key={idx}
+                            className="marker:text-gray-500 marker:font-bold"
+                          >
+                            <span className="font-bold text-white">
+                              {boldPart}
+                            </span>
                             {normalPart}
                           </li>
                         );
@@ -258,28 +214,40 @@ export default function AITutorView() {
       {/* Suggested prompts / shortcuts */}
       <div className="px-5 py-3 border-t border-gray-900/40 bg-[#121413] flex gap-3 overflow-x-auto">
         <button
-          onClick={() => handleSend("Quiz Me: Generate 5 questions from this session")}
+          onClick={() =>
+            handleSend("Quiz Me: Generate 5 questions from this session")
+          }
           className="bg-[#1a1d1b] hover:bg-[#202221] border border-gray-900 hover:border-gray-800 rounded-xl p-3.5 text-left shrink-0 w-[200px] flex flex-col justify-between h-[90px] transition-all cursor-pointer group"
         >
           <div className="w-7 h-7 rounded-lg bg-orange-950 flex items-center justify-center text-orange-400 group-hover:scale-105 transition-transform">
             <HelpCircle size={16} />
           </div>
           <div>
-            <h4 className="text-white font-bold text-xs tracking-wide">Quiz Me</h4>
-            <p className="text-gray-400 text-[10px] mt-0.5">Generate 5 questions from session</p>
+            <h4 className="text-white font-bold text-xs tracking-wide">
+              Quiz Me
+            </h4>
+            <p className="text-gray-400 text-[10px] mt-0.5">
+              Generate 5 questions from session
+            </p>
           </div>
         </button>
 
         <button
-          onClick={() => handleSend("Summarize: Get a quick bullet-point overview")}
+          onClick={() =>
+            handleSend("Summarize: Get a quick bullet-point overview")
+          }
           className="bg-[#1a1d1b] hover:bg-[#202221] border border-gray-900 hover:border-gray-800 rounded-xl p-3.5 text-left shrink-0 w-[200px] flex flex-col justify-between h-[90px] transition-all cursor-pointer group"
         >
           <div className="w-7 h-7 rounded-lg bg-emerald-950 flex items-center justify-center text-primary-400 group-hover:scale-105 transition-transform">
             <FileText size={16} />
           </div>
           <div>
-            <h4 className="text-white font-bold text-xs tracking-wide">Summarize</h4>
-            <p className="text-gray-400 text-[10px] mt-0.5">Get a quick bullet-point overview</p>
+            <h4 className="text-white font-bold text-xs tracking-wide">
+              Summarize
+            </h4>
+            <p className="text-gray-400 text-[10px] mt-0.5">
+              Get a quick bullet-point overview
+            </p>
           </div>
         </button>
 
@@ -292,7 +260,9 @@ export default function AITutorView() {
           </div>
           <div>
             <h4 className="text-white font-bold text-xs tracking-wide">Cite</h4>
-            <p className="text-gray-400 text-[10px] mt-0.5">Generate APA/MLA references</p>
+            <p className="text-gray-400 text-[10px] mt-0.5">
+              Generate APA/MLA references
+            </p>
           </div>
         </button>
       </div>
@@ -313,12 +283,12 @@ export default function AITutorView() {
           >
             <Paperclip size={18} />
           </button>
-          
+
           <input
             type="text"
             placeholder="Ask for help with research, summaries, or quizzes..."
             value={inputText}
-            onChange={e => setInputText(e.target.value)}
+            onChange={(e) => setInputText(e.target.value)}
             className="flex-1 bg-transparent border-0 text-white text-sm py-2 px-3 focus:outline-hidden placeholder:text-gray-500"
           />
 
@@ -335,8 +305,8 @@ export default function AITutorView() {
             disabled={!inputText.trim()}
             className={`w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer ${
               inputText.trim()
-                ? 'bg-primary-400 hover:bg-primary-300 text-dark-bg scale-100'
-                : 'bg-gray-800 text-gray-600 scale-95 cursor-not-allowed'
+                ? "bg-primary-400 hover:bg-primary-300 text-dark-bg scale-100"
+                : "bg-gray-800 text-gray-600 scale-95 cursor-not-allowed"
             }`}
           >
             <Send size={15} />
