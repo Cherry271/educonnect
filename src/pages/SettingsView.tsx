@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, ChangeEvent } from "react";
+import { useState, useEffect, useRef, type ChangeEvent } from "react";
 import {
   User,
   Lock,

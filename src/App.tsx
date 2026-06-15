@@ -13,6 +13,9 @@ import {
   BookOpen,
   Settings,
   X,
+  Calendar,
+  ClipboardList,
+  Shield,
 } from "lucide-react";
 import { useAuthStore } from "./store/authStore";
 import { Toaster, toast } from "react-hot-toast";
@@ -28,6 +31,10 @@ import MessagesView from "./pages/MessagesView";
 import LoginView from "./pages/LoginView";
 import RegisterView from "./pages/RegisterView";
 import SettingsView from "./pages/SettingsView";
+import CalendarView from "./pages/CalendarView";
+import AssignmentsView from "./pages/AssignmentsView";
+import ParentView from "./pages/ParentView";
+import AdminView from "./pages/AdminView";
 
 type ActiveTab =
   | "dashboard"
@@ -36,7 +43,11 @@ type ActiveTab =
   | "messages"
   | "analytics"
   | "ai-tutor"
-  | "settings";
+  | "settings"
+  | "calendar"
+  | "assignments"
+  | "parent"
+  | "admin";
 
 interface NotificationItem {
   id: string;
@@ -182,12 +193,20 @@ export default function App() {
     { tab: "feed", icon: <BookOpen size={18} />, label: "Social Feed" },
     { tab: "messages", icon: <MessageSquare size={18} />, label: "Chat" },
     { tab: "groups", icon: <Users size={18} />, label: "Academic Groups" },
+    { tab: "assignments", icon: <ClipboardList size={18} />, label: "Assignments" },
+    { tab: "calendar", icon: <Calendar size={18} />, label: "Calendar" },
     { tab: "ai-tutor", icon: <Sparkles size={18} />, label: "AI Tutor" },
     {
       tab: "analytics",
       icon: <BarChart3 size={18} />,
       label: "Analytics & Progress",
     },
+    ...(user?.role === "parent"
+      ? [{ tab: "parent" as ActiveTab, icon: <Users size={18} />, label: "Parent Portal" }]
+      : []),
+    ...(user?.role === "admin"
+      ? [{ tab: "admin" as ActiveTab, icon: <Shield size={18} />, label: "Admin Console" }]
+      : []),
     { tab: "settings", icon: <Settings size={18} />, label: "Settings" },
   ];
 
@@ -508,6 +527,10 @@ export default function App() {
           {activeTab === "analytics" && <AnalyticsView />}
           {activeTab === "ai-tutor" && <AITutorView />}
           {activeTab === "settings" && <SettingsView />}
+          {activeTab === "calendar" && <CalendarView />}
+          {activeTab === "assignments" && <AssignmentsView />}
+          {activeTab === "parent" && <ParentView />}
+          {activeTab === "admin" && <AdminView />}
         </main>
       </div>
 

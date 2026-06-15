@@ -11,7 +11,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
-import { authApi, usersApi } from "../api/client";
+import api, { authApi, usersApi } from "../api/client";
 import toast from "react-hot-toast";
 
 interface RegisterViewProps {
@@ -20,7 +20,7 @@ interface RegisterViewProps {
 
 export default function RegisterView({ onNavigateToLogin }: RegisterViewProps) {
   const { setTokens, setUser } = useAuthStore();
-  const [role, setRole] = useState<"student" | "teacher">("student");
+  const [role, setRole] = useState<"student" | "teacher" | "parent">("student");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -29,6 +29,20 @@ export default function RegisterView({ onNavigateToLogin }: RegisterViewProps) {
   const [agreeTOS, setAgreeTOS] = useState(true);
   const [subscribeNews, setSubscribeNews] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [schoolsList, setSchoolsList] = useState<{ id: string; name: string }[]>([]);
+  const [selectedSchool, setSelectedSchool] = useState("");
+
+  React.useEffect(() => {
+    const fetchSchools = async () => {
+      try {
+        const response = await api.get("/schools");
+        setSchoolsList(response.data?.items ?? []);
+      } catch (e) {
+        console.error("Failed to load schools", e);
+      }
+    };
+    fetchSchools();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,6 +68,7 @@ export default function RegisterView({ onNavigateToLogin }: RegisterViewProps) {
         email: email,
         password: password,
         role: role,
+        school: selectedSchool,
         department: "",
         faculty: "",
       };
@@ -170,18 +185,18 @@ export default function RegisterView({ onNavigateToLogin }: RegisterViewProps) {
               <span className="block text-gray-500 text-[10px] font-bold uppercase tracking-wider mb-2">
                 I am a...
               </span>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => setRole("student")}
-                  className={`flex items-center justify-center gap-2 py-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                  className={`flex items-center justify-center gap-1.5 py-3 rounded-xl border text-[11px] font-semibold transition-all cursor-pointer ${
                     role === "student"
                       ? "bg-dark-card border-[#3ddc97] text-white font-bold shadow-lg shadow-emerald-500/5"
                       : "bg-dark-card/50 border-gray-900 text-gray-500 hover:text-gray-300"
                   }`}
                 >
                   <User
-                    size={14}
+                    size={13}
                     className={
                       role === "student" ? "text-[#3ddc97]" : "text-gray-500"
                     }
@@ -191,19 +206,36 @@ export default function RegisterView({ onNavigateToLogin }: RegisterViewProps) {
                 <button
                   type="button"
                   onClick={() => setRole("teacher")}
-                  className={`flex items-center justify-center gap-2 py-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                  className={`flex items-center justify-center gap-1.5 py-3 rounded-xl border text-[11px] font-semibold transition-all cursor-pointer ${
                     role === "teacher"
                       ? "bg-dark-card border-[#3ddc97] text-white font-bold shadow-lg shadow-emerald-500/5"
                       : "bg-dark-card/50 border-gray-900 text-gray-500 hover:text-gray-300"
                   }`}
                 >
                   <Shield
-                    size={14}
+                    size={13}
                     className={
                       role === "teacher" ? "text-[#3ddc97]" : "text-gray-500"
                     }
                   />
                   Teacher
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRole("parent")}
+                  className={`flex items-center justify-center gap-1.5 py-3 rounded-xl border text-[11px] font-semibold transition-all cursor-pointer ${
+                    role === "parent"
+                      ? "bg-dark-card border-[#3ddc97] text-white font-bold shadow-lg shadow-emerald-500/5"
+                      : "bg-dark-card/50 border-gray-900 text-gray-500 hover:text-gray-300"
+                  }`}
+                >
+                  <User
+                    size={13}
+                    className={
+                      role === "parent" ? "text-[#3ddc97]" : "text-gray-500"
+                    }
+                  />
+                  Parent
                 </button>
               </div>
             </div>
@@ -273,6 +305,27 @@ export default function RegisterView({ onNavigateToLogin }: RegisterViewProps) {
                 Use your institutional email for verification
               </span>
             </div>
+
+            {/* School Dropdown */}
+            {role !== "parent" && (
+              <div>
+                <label className="block text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-1.5">
+                  Institution / School
+                </label>
+                <select
+                  value={selectedSchool}
+                  onChange={(e) => setSelectedSchool(e.target.value)}
+                  className="w-full bg-[#202221] border border-gray-900 rounded-xl py-3.5 px-3 text-xs text-white focus:outline-hidden focus:border-[#3ddc97]/50 placeholder:text-gray-600 transition-all font-semibold cursor-pointer"
+                >
+                  <option value="">No School / Independent</option>
+                  {schoolsList.map((s) => (
+                    <option key={s.id} value={s.name}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* Password */}
             <div>

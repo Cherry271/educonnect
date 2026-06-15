@@ -48,7 +48,6 @@ export default function MessagesView({
   const [isLoading, setIsLoading] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [isSending, setIsSending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -72,7 +71,6 @@ export default function MessagesView({
 
   const loadConversations = async () => {
     setIsLoading(true);
-    setError(null);
     try {
       const response = await messagesApi.conversations();
       const convs = response.data || [];
@@ -193,6 +191,9 @@ export default function MessagesView({
               className="w-full rounded-2xl border border-gray-800 bg-[#161616] py-3 pl-10 pr-3 text-sm text-white placeholder:text-gray-500 focus:border-primary-400 focus:outline-none"
             />
           </div>
+          {isSearching && (
+            <p className="text-xs text-gray-500 mt-2 pl-2 animate-pulse">Searching...</p>
+          )}
           {searchResults.length > 0 && (
             <div className="mt-3 max-h-60 overflow-y-auto rounded-2xl border border-gray-800 bg-[#101210] p-3 space-y-2">
               {searchResults.map((user) => (

@@ -47,6 +47,10 @@ export const authApi = {
     api.post("/auth/login/json", { identifier, password }),
   refresh: (refresh_token: string) =>
     api.post("/auth/refresh", { refresh_token }),
+  forgotPassword: (email: string) => api.post("/auth/forgot-password", { email }),
+  resetPassword: (token: string, new_password: string) =>
+    api.post("/auth/reset-password", { token, new_password }),
+  verifyEmail: (token: string) => api.post("/auth/verify-email", { token }),
 };
 
 // Users
@@ -99,6 +103,7 @@ export const discussionsApi = {
 export const announcementsApi = {
   list: (page = 1) => api.get("/announcements", { params: { page } }),
   create: (data: Record<string, unknown>) => api.post("/announcements", data),
+  summarize: (id: string) => api.post(`/announcements/${id}/summarize`),
 };
 
 // Groups
@@ -167,4 +172,44 @@ export const settingsApi = {
 export const adminApi = {
   analytics: () => api.get("/admin/analytics"),
   users: (page = 1) => api.get("/admin/users", { params: { page } }),
+};
+
+// Events
+export const eventsApi = {
+  list: (page = 1) => api.get("/events", { params: { page } }),
+  upcoming: (limit = 10) => api.get("/events/upcoming", { params: { limit } }),
+  create: (data: Record<string, unknown>) => api.post("/events", data),
+  update: (id: string, data: Record<string, unknown>) => api.patch(`/events/${id}`, data),
+  delete: (id: string) => api.delete(`/events/${id}`),
+};
+
+// Schools
+export const schoolsApi = {
+  list: (page = 1) => api.get("/schools", { params: { page } }),
+  get: (id: string) => api.get(`/schools/${id}`),
+  create: (data: Record<string, unknown>) => api.post("/schools", data),
+  update: (id: string, data: Record<string, unknown>) => api.patch(`/schools/${id}`, data),
+  delete: (id: string) => api.delete(`/schools/${id}`),
+};
+
+// Assignments
+export const assignmentsApi = {
+  list: (course_id?: string, page = 1) => api.get("/assignments", { params: { course_id, page } }),
+  get: (id: string) => api.get(`/assignments/${id}`),
+  create: (data: Record<string, unknown>) => api.post("/assignments", data),
+  submit: (assignment_id: string, data: Record<string, unknown>) =>
+    api.post(`/assignments/${assignment_id}/submissions`, data),
+  listSubmissions: (assignment_id: string, page = 1) =>
+    api.get(`/assignments/${assignment_id}/submissions`, { params: { page } }),
+  listMySubmissions: () => api.get("/submissions/my"),
+  grade: (submission_id: string, data: Record<string, unknown>) =>
+    api.post(`/submissions/${submission_id}/grade`, data),
+};
+
+// Parent Portal
+export const parentApi = {
+  getChildren: () => api.get("/parent/children"),
+  addChild: (child_username_or_email: string) =>
+    api.post(`/parent/children?child_username_or_email=${encodeURIComponent(child_username_or_email)}`),
+  getChildProgress: (child_id: string) => api.get(`/parent/children/${child_id}/progress`),
 };
