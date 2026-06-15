@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import toast from "react-hot-toast";
 import {
   Image,
   BookOpen,
@@ -59,6 +60,8 @@ function timeAgo(dateStr: string): string {
   if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
   return `${Math.floor(diff / 86_400_000)}d ago`;
 }
+
+
 
 export default function FeedView() {
   const { user } = useAuthStore();
@@ -140,9 +143,13 @@ export default function FeedView() {
           );
 
           setPosts(mapped);
+        } else {
+          setPosts([]);
         }
       } catch (err) {
-        console.error("Failed to load feed items.", err);
+        console.error("Failed to load feed items:", err);
+        toast.error("Failed to load feed items");
+        setPosts([]);
       }
     };
     loadFeed();
@@ -164,14 +171,22 @@ export default function FeedView() {
           discussionsApi.trending(),
           notificationsApi.list(1),
         ]);
-        if (trendingRes.status === "fulfilled") {
+        if (trendingRes.status === "fulfilled" && trendingRes.value.data && trendingRes.value.data.length > 0) {
           setTrendingTopics((trendingRes.value.data || []).slice(0, 4));
+        } else {
+          setTrendingTopics([]);
         }
-        if (notifRes.status === "fulfilled") {
+        if (notifRes.status === "fulfilled" && notifRes.value.data?.items) {
           setRecentNotifications(
             (notifRes.value.data?.items || []).slice(0, 3),
           );
+        } else {
+          setRecentNotifications([]);
         }
+      } catch (err) {
+        console.error("Failed to load widgets:", err);
+        setTrendingTopics([]);
+        setRecentNotifications([]);
       } finally {
         setIsLoadingWidgets(false);
       }

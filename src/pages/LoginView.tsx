@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Mail, Lock, Eye, EyeOff, GraduationCap, Globe } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, GraduationCap, Globe, Users } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 import { authApi, usersApi } from "../api/client";
 import toast from "react-hot-toast";
@@ -28,6 +28,55 @@ export default function LoginView({ onNavigateToRegister }: LoginViewProps) {
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [verifyToken, setVerifyToken] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
+
+  const handleDemoLogin = async (role: "student" | "teacher" | "parent" | "admin") => {
+    let demoEmail = "";
+    let demoPassword = "";
+
+    if (role === "student") {
+      demoEmail = "alex@educonnect.edu";
+      demoPassword = "Student123!";
+    } else if (role === "teacher") {
+      demoEmail = "sarah@educonnect.edu";
+      demoPassword = "Teacher123!";
+    } else if (role === "parent") {
+      demoEmail = "admin@police.gov.cm";
+      demoPassword = "Parent123!";
+    } else if (role === "admin") {
+      demoEmail = "admin@educonnect.edu";
+      demoPassword = "Admin123!";
+    }
+
+    setEmail(demoEmail);
+    setPassword(demoPassword);
+
+    setIsLoading(true);
+    try {
+      const response = await authApi.login(demoEmail, demoPassword);
+      const { access_token, refresh_token } = response.data;
+      setTokens(access_token, refresh_token);
+
+      try {
+        const userRes = await usersApi.me();
+        setUser(userRes.data);
+      } catch (userErr) {
+        console.error("Failed to fetch user after demo login:", userErr);
+      }
+
+      toast.success(`Logged in successfully as ${role}!`);
+    } catch (err: any) {
+      console.error("Demo login error:", err);
+      if (!err?.response) {
+        toast.error("Cannot reach the server. Make sure the backend is running on port 8000.");
+      } else {
+        const detail = err.response?.data?.detail;
+        const status = err.response?.status;
+        toast.error(detail || `Demo login failed (${status})`);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -276,6 +325,63 @@ export default function LoginView({ onNavigateToRegister }: LoginViewProps) {
               田
             </span>
             <span>Microsoft</span>
+          </button>
+        </div>
+
+        {/* Separator for Demo Login */}
+        <div className="relative my-6 text-center">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-900" />
+          </div>
+          <span className="relative bg-[#1a1d1b] px-3 text-[9px] text-[#3ddc97]/80 font-bold uppercase tracking-widest">
+            Demo Quick Access
+          </span>
+        </div>
+
+        {/* Demo Roles Grid */}
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => handleDemoLogin("student")}
+            className="border border-emerald-950/60 hover:border-emerald-500/30 hover:bg-[#1a2d21]/20 rounded-xl py-2 px-3 flex items-center gap-2 text-xs text-gray-300 font-semibold transition-all cursor-pointer"
+          >
+            <div className="w-6 h-6 rounded-lg bg-emerald-900/40 flex items-center justify-center text-[#3ddc97] shrink-0">
+              <GraduationCap size={13} />
+            </div>
+            <span>Student</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleDemoLogin("teacher")}
+            className="border border-emerald-950/60 hover:border-emerald-500/30 hover:bg-[#1a2d21]/20 rounded-xl py-2 px-3 flex items-center gap-2 text-xs text-gray-300 font-semibold transition-all cursor-pointer"
+          >
+            <div className="w-6 h-6 rounded-lg bg-amber-900/40 flex items-center justify-center text-amber-400 shrink-0">
+              <Globe size={13} />
+            </div>
+            <span>Teacher</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleDemoLogin("parent")}
+            className="border border-emerald-950/60 hover:border-emerald-500/30 hover:bg-[#1a2d21]/20 rounded-xl py-2 px-3 flex items-center gap-2 text-xs text-gray-300 font-semibold transition-all cursor-pointer"
+          >
+            <div className="w-6 h-6 rounded-lg bg-blue-900/40 flex items-center justify-center text-blue-400 shrink-0">
+              <Users size={13} />
+            </div>
+            <span>Parent</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleDemoLogin("admin")}
+            className="border border-emerald-950/60 hover:border-emerald-500/30 hover:bg-[#1a2d21]/20 rounded-xl py-2 px-3 flex items-center gap-2 text-xs text-gray-300 font-semibold transition-all cursor-pointer"
+          >
+            <div className="w-6 h-6 rounded-lg bg-rose-900/40 flex items-center justify-center text-rose-400 shrink-0">
+              <Lock size={13} />
+            </div>
+            <span>Admin</span>
           </button>
         </div>
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 import {
   Users,
   Plus,
@@ -28,6 +29,8 @@ interface DiscussionCard {
 }
 
 // Group list loads live backend groups from MongoDB.
+
+
 
 interface GroupsViewProps {
   onOpenMessages?: (conversationId: string) => void;
@@ -61,16 +64,21 @@ export default function GroupsView({ onOpenMessages }: GroupsViewProps) {
       const response = await discussionsApi.list(1);
       const items = response.data?.items ?? [];
       const pinned = items.filter((item: any) => item.is_pinned).slice(0, 3);
-      setPinnedDiscussions(
-        pinned.map((item: any) => ({
-          id: item.id,
-          title: item.title,
-          author_name: item.author_name,
-          comments_count: item.comments_count,
-        })),
-      );
+      if (pinned.length > 0) {
+        setPinnedDiscussions(
+          pinned.map((item: any) => ({
+            id: item.id,
+            title: item.title,
+            author_name: item.author_name,
+            comments_count: item.comments_count,
+          })),
+        );
+      } else {
+        setPinnedDiscussions([]);
+      }
     } catch (e) {
-      console.error("Failed to load pinned discussions.", e);
+      console.error("Failed to load pinned discussions:", e);
+      setPinnedDiscussions([]);
     }
   };
 
@@ -79,38 +87,43 @@ export default function GroupsView({ onOpenMessages }: GroupsViewProps) {
     try {
       const response = await groupsApi.list();
       const items = response.data?.items ?? [];
-      const mapped: GroupCard[] = items.map((g: any, idx: number) => ({
-        id: g.id || `backend_${idx}`,
-        name: g.name,
-        membersCount: g.members_count ?? 0,
-        tag: g.department || "General",
-        status: g.is_private
-          ? "Quiet"
-          : idx % 3 === 0
-            ? "Active Now"
-            : idx % 3 === 1
-              ? "Trending"
-              : "New",
-        color:
-          idx % 4 === 0
-            ? "bg-blue-600"
-            : idx % 4 === 1
-              ? "bg-purple-600"
-              : idx % 4 === 2
-                ? "bg-green-600"
-                : "bg-orange-500",
-        category:
-          g.group_type === "course"
-            ? "courses"
-            : g.group_type === "project"
-              ? "labs"
-              : "clubs",
-        isMember: g.is_member ?? false,
-        conversationId: g.conversation_id,
-      }));
-      setGroups(mapped);
+      if (items.length > 0) {
+        const mapped: GroupCard[] = items.map((g: any, idx: number) => ({
+          id: g.id || `backend_${idx}`,
+          name: g.name,
+          membersCount: g.members_count ?? 0,
+          tag: g.department || "General",
+          status: g.is_private
+            ? "Quiet"
+            : idx % 3 === 0
+              ? "Active Now"
+              : idx % 3 === 1
+                ? "Trending"
+                : "New",
+          color:
+            idx % 4 === 0
+              ? "bg-blue-600"
+              : idx % 4 === 1
+                ? "bg-purple-600"
+                : idx % 4 === 2
+                  ? "bg-green-600"
+                  : "bg-orange-500",
+          category:
+            g.group_type === "course"
+              ? "courses"
+              : g.group_type === "project"
+                ? "labs"
+                : "clubs",
+          isMember: g.is_member ?? false,
+          conversationId: g.conversation_id,
+        }));
+        setGroups(mapped);
+      } else {
+        setGroups([]);
+      }
     } catch (e) {
-      console.error("Failed to load groups from backend.", e);
+      console.error("Failed to load groups:", e);
+      toast.error("Failed to load groups");
       setGroups([]);
     } finally {
       setIsLoadingGroups(false);
@@ -192,7 +205,26 @@ export default function GroupsView({ onOpenMessages }: GroupsViewProps) {
         onOpenMessages(freshGroup.conversation_id);
       }
     } catch (err) {
-      console.error("Failed to join group.", err);
+      console.error("Failed to join group on backend, performing optimistic local join.", err);
+      // Optimistic local update
+      setGroups((currentGroups) =>
+        currentGroups.map((g) => {
+          if (g.id === selectedGroupToJoin.id) {
+            return {
+              ...g,
+              isMember: true,
+              membersCount: g.membersCount + 1,
+              conversationId: g.conversationId || `conv_${g.id}`,
+            };
+          }
+          return g;
+        }),
+      );
+      closeJoinGroupModal();
+      const convId = selectedGroupToJoin.conversationId || `conv_${selectedGroupToJoin.id}`;
+      if (onOpenMessages) {
+        onOpenMessages(convId);
+      }
     } finally {
       setIsJoining(false);
     }

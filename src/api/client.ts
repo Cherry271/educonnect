@@ -16,7 +16,7 @@ api.interceptors.response.use(
   (res) => res,
   async (error) => {
     const original = error.config;
-    if (error.response?.status === 401 && !original._retry) {
+    if (error.response?.status === 401 && !original._retry && !original.url?.includes("/auth/refresh")) {
       original._retry = true;
       const refreshToken = useAuthStore.getState().refreshToken;
       if (refreshToken) {
@@ -72,6 +72,9 @@ export const postsApi = {
     api.post(`/posts/${id}/comments`, { content }),
   bookmark: (id: string) => api.post(`/posts/${id}/bookmark`),
   delete: (id: string) => api.delete(`/posts/${id}`),
+  update: (id: string, data: Record<string, unknown>) => api.patch(`/posts/${id}`, data),
+  share: (id: string) => api.post(`/posts/${id}/share`),
+  report: (id: string, reason: string) => api.post(`/posts/${id}/report`, { reason }),
 };
 
 // Resources
@@ -97,6 +100,8 @@ export const discussionsApi = {
   like: (id: string) => api.post(`/discussions/${id}/like`),
   comment: (id: string, content: string) =>
     api.post(`/discussions/${id}/comments`, { content }),
+  pin: (id: string, pinned = true) => api.post(`/discussions/${id}/pin?pinned=${pinned}`),
+  delete: (id: string) => api.delete(`/discussions/${id}`),
 };
 
 // Announcements
@@ -125,6 +130,16 @@ export const messagesApi = {
     api.get(`/conversations/${id}/messages`, { params: { page } }),
   send: (id: string, content: string) =>
     api.post(`/conversations/${id}/messages`, { content }),
+  sendPayload: (id: string, payload: { content: string; file_url?: string; voice_url?: string; message_type?: string }) =>
+    api.post(`/conversations/${id}/messages`, payload),
+  edit: (messageId: string, content: string) =>
+    api.patch(`/conversations/messages/${messageId}`, { content }),
+  delete: (messageId: string) =>
+    api.delete(`/conversations/messages/${messageId}`),
+  uploadFile: (formData: FormData) =>
+    api.post("/upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
 };
 
 // Notifications

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 import {
   Image,
   BookOpen,
@@ -51,6 +52,8 @@ function timeAgo(dateStr: string): string {
   if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
   return `${Math.floor(diff / 86_400_000)}d ago`;
 }
+
+
 
 interface DashboardViewProps {
   onNavigateToAiTutor: () => void;
@@ -124,9 +127,13 @@ export default function DashboardView({
           );
 
           setPosts(mapped);
+        } else {
+          setPosts([]);
         }
       } catch (err) {
-        console.error("Failed to load dashboard feed.", err);
+        console.error("Failed to load dashboard feed:", err);
+        toast.error("Failed to load dashboard feed");
+        setPosts([]);
       }
     };
     loadDashboardFeed();
@@ -142,17 +149,31 @@ export default function DashboardView({
           notificationsApi.list(1),
         ]);
 
-        if (trendingRes.status === "fulfilled") {
+        if (trendingRes.status === "fulfilled" && trendingRes.value.data && trendingRes.value.data.length > 0) {
           setTrendingDiscussions((trendingRes.value.data || []).slice(0, 4));
+        } else {
+          setTrendingDiscussions([]);
         }
-        if (groupsRes.status === "fulfilled") {
+
+        if (groupsRes.status === "fulfilled" && groupsRes.value.data?.items) {
           const allGroups = groupsRes.value.data?.items || [];
-          setUserGroups(allGroups.filter((g: any) => g.is_member).slice(0, 3));
+          const joined = allGroups.filter((g: any) => g.is_member).slice(0, 3);
+          setUserGroups(joined);
+        } else {
+          setUserGroups([]);
         }
-        if (notifRes.status === "fulfilled") {
+
+        if (notifRes.status === "fulfilled" && notifRes.value.data?.items) {
           const items = notifRes.value.data?.items || [];
           setUnreadCount(items.filter((n: any) => !n.is_read).length);
+        } else {
+          setUnreadCount(0);
         }
+      } catch (err) {
+        console.error("Failed to load widgets:", err);
+        setTrendingDiscussions([]);
+        setUserGroups([]);
+        setUnreadCount(0);
       } finally {
         setIsLoadingWidgets(false);
       }

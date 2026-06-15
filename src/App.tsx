@@ -73,6 +73,56 @@ export default function App() {
     string | undefined
   >(undefined);
 
+  const getNavItems = () => {
+    if (!user) return [];
+    
+    switch (user.role) {
+      case "student":
+        return [
+          { tab: "dashboard" as ActiveTab, icon: <Home size={18} />, label: "Dashboard" },
+          { tab: "feed" as ActiveTab, icon: <BookOpen size={18} />, label: "Social Feed" },
+          { tab: "messages" as ActiveTab, icon: <MessageSquare size={18} />, label: "Chat" },
+          { tab: "groups" as ActiveTab, icon: <Users size={18} />, label: "Academic Groups" },
+          { tab: "assignments" as ActiveTab, icon: <ClipboardList size={18} />, label: "Assignments" },
+          { tab: "calendar" as ActiveTab, icon: <Calendar size={18} />, label: "Calendar" },
+          { tab: "ai-tutor" as ActiveTab, icon: <Sparkles size={18} />, label: "AI Tutor" },
+          { tab: "analytics" as ActiveTab, icon: <BarChart3 size={18} />, label: "Analytics & Progress" },
+          { tab: "settings" as ActiveTab, icon: <Settings size={18} />, label: "Settings" },
+        ];
+      case "teacher":
+        return [
+          { tab: "dashboard" as ActiveTab, icon: <Home size={18} />, label: "Dashboard" },
+          { tab: "feed" as ActiveTab, icon: <BookOpen size={18} />, label: "Social Feed" },
+          { tab: "messages" as ActiveTab, icon: <MessageSquare size={18} />, label: "Chat" },
+          { tab: "groups" as ActiveTab, icon: <Users size={18} />, label: "Academic Groups" },
+          { tab: "assignments" as ActiveTab, icon: <ClipboardList size={18} />, label: "Assignments Hub" },
+          { tab: "calendar" as ActiveTab, icon: <Calendar size={18} />, label: "Calendar" },
+          { tab: "ai-tutor" as ActiveTab, icon: <Sparkles size={18} />, label: "AI Tutor" },
+          { tab: "settings" as ActiveTab, icon: <Settings size={18} />, label: "Settings" },
+        ];
+      case "parent":
+        return [
+          { tab: "parent" as ActiveTab, icon: <Users size={18} />, label: "Parent Portal" },
+          { tab: "messages" as ActiveTab, icon: <MessageSquare size={18} />, label: "Chat" },
+          { tab: "calendar" as ActiveTab, icon: <Calendar size={18} />, label: "Calendar" },
+          { tab: "ai-tutor" as ActiveTab, icon: <Sparkles size={18} />, label: "AI Tutor" },
+          { tab: "settings" as ActiveTab, icon: <Settings size={18} />, label: "Settings" },
+        ];
+      case "admin":
+        return [
+          { tab: "admin" as ActiveTab, icon: <Shield size={18} />, label: "Admin Console" },
+          { tab: "messages" as ActiveTab, icon: <MessageSquare size={18} />, label: "Chat" },
+          { tab: "ai-tutor" as ActiveTab, icon: <Sparkles size={18} />, label: "AI Tutor" },
+          { tab: "settings" as ActiveTab, icon: <Settings size={18} />, label: "Settings" },
+        ];
+      default:
+        return [
+          { tab: "ai-tutor" as ActiveTab, icon: <Sparkles size={18} />, label: "AI Tutor" },
+          { tab: "settings" as ActiveTab, icon: <Settings size={18} />, label: "Settings" },
+        ];
+    }
+  };
+
   // Auto-restore user profile if we have a token but no user (e.g. after page refresh with stale store)
   useEffect(() => {
     if (accessToken && !user) {
@@ -84,6 +134,19 @@ export default function App() {
       });
     }
   }, [accessToken, user]);
+
+  // Redirect to first available tab on login / role change
+  useEffect(() => {
+    if (user) {
+      const allowedItems = getNavItems();
+      if (allowedItems.length > 0) {
+        const isCurrentTabAllowed = allowedItems.some(item => item.tab === activeTab);
+        if (!isCurrentTabAllowed) {
+          setActiveTab(allowedItems[0].tab as ActiveTab);
+        }
+      }
+    }
+  }, [user, activeTab]);
 
   // Search
   const [searchQuery, setSearchQuery] = useState("");
@@ -188,27 +251,7 @@ export default function App() {
   const getInitials = (firstName = "", lastName = "") =>
     `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase();
 
-  const navItems: { tab: ActiveTab; icon: React.ReactNode; label: string }[] = [
-    { tab: "dashboard", icon: <Home size={18} />, label: "Dashboard" },
-    { tab: "feed", icon: <BookOpen size={18} />, label: "Social Feed" },
-    { tab: "messages", icon: <MessageSquare size={18} />, label: "Chat" },
-    { tab: "groups", icon: <Users size={18} />, label: "Academic Groups" },
-    { tab: "assignments", icon: <ClipboardList size={18} />, label: "Assignments" },
-    { tab: "calendar", icon: <Calendar size={18} />, label: "Calendar" },
-    { tab: "ai-tutor", icon: <Sparkles size={18} />, label: "AI Tutor" },
-    {
-      tab: "analytics",
-      icon: <BarChart3 size={18} />,
-      label: "Analytics & Progress",
-    },
-    ...(user?.role === "parent"
-      ? [{ tab: "parent" as ActiveTab, icon: <Users size={18} />, label: "Parent Portal" }]
-      : []),
-    ...(user?.role === "admin"
-      ? [{ tab: "admin" as ActiveTab, icon: <Shield size={18} />, label: "Admin Console" }]
-      : []),
-    { tab: "settings", icon: <Settings size={18} />, label: "Settings" },
-  ];
+  const navItems = getNavItems();
 
   // ─── Auth gate ───────────────────────────────────────────────────────────────
   if (!user) {
@@ -232,6 +275,8 @@ export default function App() {
       </>
     );
   }
+
+  const isTabAllowed = navItems.some((item) => item.tab === activeTab);
 
   // ─── Main app ─────────────────────────────────────────────────────────────────
   return (
@@ -508,29 +553,38 @@ export default function App() {
 
         {/* Main View */}
         <main className="flex-1 p-6 overflow-y-auto">
-          {activeTab === "dashboard" && (
+          {isTabAllowed && activeTab === "dashboard" && (
             <DashboardView
               onNavigateToAiTutor={() => setActiveTab("ai-tutor")}
             />
           )}
-          {activeTab === "feed" && <FeedView />}
-          {activeTab === "messages" && (
+          {isTabAllowed && activeTab === "feed" && <FeedView />}
+          {isTabAllowed && activeTab === "messages" && (
             <div className="h-full">
               <MessagesView initialConversationId={activeConversationId} />
             </div>
           )}
-          {activeTab === "groups" && (
+          {isTabAllowed && activeTab === "groups" && (
             <div className="h-full">
               <GroupsView onOpenMessages={handleOpenGroupChat} />
             </div>
           )}
-          {activeTab === "analytics" && <AnalyticsView />}
-          {activeTab === "ai-tutor" && <AITutorView />}
-          {activeTab === "settings" && <SettingsView />}
-          {activeTab === "calendar" && <CalendarView />}
-          {activeTab === "assignments" && <AssignmentsView />}
-          {activeTab === "parent" && <ParentView />}
-          {activeTab === "admin" && <AdminView />}
+          {isTabAllowed && activeTab === "analytics" && <AnalyticsView />}
+          {isTabAllowed && activeTab === "ai-tutor" && <AITutorView />}
+          {isTabAllowed && activeTab === "settings" && <SettingsView />}
+          {isTabAllowed && activeTab === "calendar" && <CalendarView />}
+          {isTabAllowed && activeTab === "assignments" && <AssignmentsView />}
+          {isTabAllowed && activeTab === "parent" && <ParentView />}
+          {isTabAllowed && activeTab === "admin" && <AdminView />}
+          {!isTabAllowed && (
+            <div className="bg-[#161616] border border-gray-900 rounded-3xl p-8 text-center max-w-lg mx-auto space-y-4 my-12 animate-fadeIn">
+              <Shield size={48} className="text-rose-500 mx-auto" />
+              <h2 className="text-white font-black text-lg">Access Prohibited</h2>
+              <p className="text-gray-400 text-xs leading-relaxed">
+                This page is not accessible under your current account role.
+              </p>
+            </div>
+          )}
         </main>
       </div>
 
