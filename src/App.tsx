@@ -20,6 +20,7 @@ import {
 import { useAuthStore } from "./store/authStore";
 import { Toaster, toast } from "react-hot-toast";
 import { notificationsApi, searchApi } from "./api/client";
+import { useTranslation } from "./store/uiStore";
 
 // Views
 import DashboardView from "./pages/DashboardView";
@@ -67,6 +68,7 @@ interface SearchResult {
 
 export default function App() {
   const { user, logout, setUser, accessToken } = useAuthStore();
+  const { t, theme } = useTranslation();
   const [authView, setAuthView] = useState<"login" | "register">("login");
   const [activeTab, setActiveTab] = useState<ActiveTab>("dashboard");
   const [activeConversationId, setActiveConversationId] = useState<
@@ -79,46 +81,46 @@ export default function App() {
     switch (user.role) {
       case "student":
         return [
-          { tab: "dashboard" as ActiveTab, icon: <Home size={18} />, label: "Dashboard" },
-          { tab: "feed" as ActiveTab, icon: <BookOpen size={18} />, label: "Social Feed" },
-          { tab: "messages" as ActiveTab, icon: <MessageSquare size={18} />, label: "Chat" },
-          { tab: "groups" as ActiveTab, icon: <Users size={18} />, label: "Academic Groups" },
-          { tab: "assignments" as ActiveTab, icon: <ClipboardList size={18} />, label: "Assignments" },
-          { tab: "calendar" as ActiveTab, icon: <Calendar size={18} />, label: "Calendar" },
-          { tab: "ai-tutor" as ActiveTab, icon: <Sparkles size={18} />, label: "AI Tutor" },
-          { tab: "analytics" as ActiveTab, icon: <BarChart3 size={18} />, label: "Analytics & Progress" },
-          { tab: "settings" as ActiveTab, icon: <Settings size={18} />, label: "Settings" },
+          { tab: "dashboard" as ActiveTab, icon: <Home size={18} />, label: t("dashboard") },
+          { tab: "feed" as ActiveTab, icon: <BookOpen size={18} />, label: t("feed") },
+          { tab: "messages" as ActiveTab, icon: <MessageSquare size={18} />, label: t("chat") },
+          { tab: "groups" as ActiveTab, icon: <Users size={18} />, label: t("groups") },
+          { tab: "assignments" as ActiveTab, icon: <ClipboardList size={18} />, label: t("assignments") },
+          { tab: "calendar" as ActiveTab, icon: <Calendar size={18} />, label: t("calendar") },
+          { tab: "ai-tutor" as ActiveTab, icon: <Sparkles size={18} />, label: t("aiTutor") },
+          { tab: "analytics" as ActiveTab, icon: <BarChart3 size={18} />, label: t("analytics") },
+          { tab: "settings" as ActiveTab, icon: <Settings size={18} />, label: t("settings") },
         ];
       case "teacher":
         return [
-          { tab: "dashboard" as ActiveTab, icon: <Home size={18} />, label: "Dashboard" },
-          { tab: "feed" as ActiveTab, icon: <BookOpen size={18} />, label: "Social Feed" },
-          { tab: "messages" as ActiveTab, icon: <MessageSquare size={18} />, label: "Chat" },
-          { tab: "groups" as ActiveTab, icon: <Users size={18} />, label: "Academic Groups" },
-          { tab: "assignments" as ActiveTab, icon: <ClipboardList size={18} />, label: "Assignments Hub" },
-          { tab: "calendar" as ActiveTab, icon: <Calendar size={18} />, label: "Calendar" },
-          { tab: "ai-tutor" as ActiveTab, icon: <Sparkles size={18} />, label: "AI Tutor" },
-          { tab: "settings" as ActiveTab, icon: <Settings size={18} />, label: "Settings" },
+          { tab: "dashboard" as ActiveTab, icon: <Home size={18} />, label: t("dashboard") },
+          { tab: "feed" as ActiveTab, icon: <BookOpen size={18} />, label: t("feed") },
+          { tab: "messages" as ActiveTab, icon: <MessageSquare size={18} />, label: t("chat") },
+          { tab: "groups" as ActiveTab, icon: <Users size={18} />, label: t("groups") },
+          { tab: "assignments" as ActiveTab, icon: <ClipboardList size={18} />, label: t("assignments") },
+          { tab: "calendar" as ActiveTab, icon: <Calendar size={18} />, label: t("calendar") },
+          { tab: "ai-tutor" as ActiveTab, icon: <Sparkles size={18} />, label: t("aiTutor") },
+          { tab: "settings" as ActiveTab, icon: <Settings size={18} />, label: t("settings") },
         ];
       case "parent":
         return [
-          { tab: "parent" as ActiveTab, icon: <Users size={18} />, label: "Parent Portal" },
-          { tab: "messages" as ActiveTab, icon: <MessageSquare size={18} />, label: "Chat" },
-          { tab: "calendar" as ActiveTab, icon: <Calendar size={18} />, label: "Calendar" },
-          { tab: "ai-tutor" as ActiveTab, icon: <Sparkles size={18} />, label: "AI Tutor" },
-          { tab: "settings" as ActiveTab, icon: <Settings size={18} />, label: "Settings" },
+          { tab: "parent" as ActiveTab, icon: <Users size={18} />, label: t("parent") },
+          { tab: "messages" as ActiveTab, icon: <MessageSquare size={18} />, label: t("chat") },
+          { tab: "calendar" as ActiveTab, icon: <Calendar size={18} />, label: t("calendar") },
+          { tab: "ai-tutor" as ActiveTab, icon: <Sparkles size={18} />, label: t("aiTutor") },
+          { tab: "settings" as ActiveTab, icon: <Settings size={18} />, label: t("settings") },
         ];
       case "admin":
         return [
-          { tab: "admin" as ActiveTab, icon: <Shield size={18} />, label: "Admin Console" },
-          { tab: "messages" as ActiveTab, icon: <MessageSquare size={18} />, label: "Chat" },
-          { tab: "ai-tutor" as ActiveTab, icon: <Sparkles size={18} />, label: "AI Tutor" },
-          { tab: "settings" as ActiveTab, icon: <Settings size={18} />, label: "Settings" },
+          { tab: "admin" as ActiveTab, icon: <Shield size={18} />, label: t("admin") },
+          { tab: "messages" as ActiveTab, icon: <MessageSquare size={18} />, label: t("chat") },
+          { tab: "ai-tutor" as ActiveTab, icon: <Sparkles size={18} />, label: t("aiTutor") },
+          { tab: "settings" as ActiveTab, icon: <Settings size={18} />, label: t("settings") },
         ];
       default:
         return [
-          { tab: "ai-tutor" as ActiveTab, icon: <Sparkles size={18} />, label: "AI Tutor" },
-          { tab: "settings" as ActiveTab, icon: <Settings size={18} />, label: "Settings" },
+          { tab: "ai-tutor" as ActiveTab, icon: <Sparkles size={18} />, label: t("aiTutor") },
+          { tab: "settings" as ActiveTab, icon: <Settings size={18} />, label: t("settings") },
         ];
     }
   };
@@ -134,6 +136,15 @@ export default function App() {
       });
     }
   }, [accessToken, user]);
+
+  // Synchronize theme with class on documentElement
+  useEffect(() => {
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [theme]);
 
   // Redirect to first available tab on login / role change
   useEffect(() => {
@@ -373,18 +384,18 @@ export default function App() {
                 className="w-full text-left px-2 py-2 rounded-lg text-xs hover:bg-[#1a1d1b] transition-colors flex items-center gap-2"
               >
                 <Settings size={13} className="text-gray-400" />
-                Account Settings
+                {t("accountSettings")}
               </button>
               <div className="h-px bg-gray-900/60 my-1" />
               <button
                 onClick={() => {
                   logout();
-                  toast.success("Logged out successfully");
+                  toast.success(t("loggedOutSuccess"));
                 }}
                 className="w-full text-left px-2 py-2 rounded-lg text-xs text-rose-400 hover:bg-rose-950/20 transition-colors flex items-center gap-2"
               >
                 <LogOut size={13} />
-                Logout Session
+                {t("logoutSession")}
               </button>
             </div>
           )}
@@ -405,7 +416,7 @@ export default function App() {
                 />
                 <input
                   type="text"
-                  placeholder="Search for topics, resources, or peers..."
+                  placeholder={t("searchPlaceholder")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() =>
@@ -486,7 +497,7 @@ export default function App() {
                 <div className="absolute right-0 mt-3 w-80 bg-[#161616] border border-gray-800 rounded-xl p-3 shadow-2xl z-40 animate-fadeIn">
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="text-white font-bold text-xs">
-                      Notifications
+                      {t("notifications")}
                     </h4>
                     <button
                       onClick={() => setShowNotifications(false)}
@@ -498,7 +509,7 @@ export default function App() {
                   <div className="space-y-2 max-h-72 overflow-y-auto">
                     {notifications.length === 0 ? (
                       <p className="text-xs text-gray-400 py-2">
-                        No notifications yet.
+                        {t("noNotifications")}
                       </p>
                     ) : (
                       notifications.slice(0, 10).map((n) => (
@@ -579,9 +590,9 @@ export default function App() {
           {!isTabAllowed && (
             <div className="bg-[#161616] border border-gray-900 rounded-3xl p-8 text-center max-w-lg mx-auto space-y-4 my-12 animate-fadeIn">
               <Shield size={48} className="text-rose-500 mx-auto" />
-              <h2 className="text-white font-black text-lg">Access Prohibited</h2>
+              <h2 className="text-white font-black text-lg">{t("accessProhibited")}</h2>
               <p className="text-gray-400 text-xs leading-relaxed">
-                This page is not accessible under your current account role.
+                {t("accessProhibitedDesc")}
               </p>
             </div>
           )}

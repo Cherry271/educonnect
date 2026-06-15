@@ -228,3 +228,12 @@ export const parentApi = {
     api.post(`/parent/children?child_username_or_email=${encodeURIComponent(child_username_or_email)}`),
   getChildProgress: (child_id: string) => api.get(`/parent/children/${child_id}/progress`),
 };
+
+export const getMediaUrl = (path: string | null | undefined): string => {
+  if (!path) return "";
+  if (path.startsWith("http://") || path.startsWith("https://") || path.startsWith("data:")) {
+    return path;
+  }
+  const backendBase = "http://localhost:8000";
+  return `${backendBase}${path}`;
+};

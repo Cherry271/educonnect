@@ -18,6 +18,7 @@ import {
 import toast from "react-hot-toast";
 import api, { usersApi } from "../api/client";
 import { useAuthStore } from "../store/authStore";
+import { useTranslation } from "../store/uiStore";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -215,13 +216,14 @@ function Field({
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function SettingsView() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>("profile");
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
-    { id: "profile", label: "Profile", icon: <User size={16} /> },
-    { id: "security", label: "Security", icon: <Lock size={16} /> },
-    { id: "notifications", label: "Notifications", icon: <Bell size={16} /> },
-    { id: "appearance", label: "Appearance", icon: <Palette size={16} /> },
+    { id: "profile", label: t("profileTab"), icon: <User size={16} /> },
+    { id: "security", label: t("securityTab"), icon: <Lock size={16} /> },
+    { id: "notifications", label: t("notificationsTab"), icon: <Bell size={16} /> },
+    { id: "appearance", label: t("appearanceTab"), icon: <Palette size={16} /> },
   ];
 
   return (
@@ -229,7 +231,7 @@ export default function SettingsView() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-white">Settings</h1>
+          <h1 className="text-2xl font-bold text-white">{t("settings")}</h1>
           <p className="text-gray-500 text-sm mt-1">
             Manage your account, security, and preferences
           </p>
@@ -935,17 +937,7 @@ function NotificationsTab() {
   );
 }
 
-// ─── Appearance Tab ───────────────────────────────────────────────────────────
-
-const LANGUAGES = [
-  { value: "en", label: "English" },
-  { value: "fr", label: "French" },
-  { value: "es", label: "Spanish" },
-  { value: "ar", label: "Arabic" },
-  { value: "pt", label: "Portuguese" },
-  { value: "de", label: "German" },
-  { value: "zh", label: "Chinese (Simplified)" },
-];
+// Appearance Tab ───────────────────────────────────────────────────────────
 
 const TIMEZONES = [
   { value: "UTC", label: "UTC — Coordinated Universal Time" },
@@ -983,7 +975,7 @@ const DENSITIES: { value: Density; label: string; description: string }[] = [
 ];
 
 function AppearanceTab() {
-  const [language, setLanguage] = useState("en");
+  const { t, theme, setTheme, language, setLanguage } = useTranslation();
   const [timezone, setTimezone] = useState("UTC");
   const [density, setDensity] = useState<Density>("comfortable");
 
@@ -994,29 +986,51 @@ function AppearanceTab() {
     <>
       {/* Theme */}
       <Section
-        title="Theme"
-        description="EduConnect always uses a dark theme for the best experience"
+        title={t("theme")}
+        description={t("themeDesc")}
       >
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-3 bg-[#202221] border border-primary-400/30 rounded-xl px-4 py-3 flex-1">
-            <div className="w-4 h-4 rounded-full bg-[#121413] border-2 border-primary-400" />
-            <span className="text-sm text-white font-medium">Dark Mode</span>
-            <Check size={14} className="text-primary-400 ml-auto" />
-          </div>
-          <div className="flex items-center gap-3 bg-[#202221] border border-gray-800 rounded-xl px-4 py-3 flex-1 opacity-40 cursor-not-allowed">
-            <div className="w-4 h-4 rounded-full bg-gray-200 border-2 border-gray-400" />
-            <span className="text-sm text-gray-400 font-medium">
-              Light Mode
+          <button
+            type="button"
+            onClick={() => setTheme("dark")}
+            className={`flex items-center gap-3 border rounded-xl px-4 py-3 flex-1 cursor-pointer transition-colors ${
+              theme === "dark"
+                ? "bg-[#202221] border-primary-400/30"
+                : "bg-transparent border-gray-850"
+            }`}
+          >
+            <div className={`w-4 h-4 rounded-full border-2 ${
+              theme === "dark" ? "bg-[#121413] border-primary-400" : "bg-transparent border-gray-400"
+            }`} />
+            <span className={`text-sm font-medium ${theme === "dark" ? "text-white" : "text-gray-400"}`}>
+              {t("darkMode")}
             </span>
-            <span className="text-xs text-gray-600 ml-auto">Soon</span>
-          </div>
+            {theme === "dark" && <Check size={14} className="text-primary-400 ml-auto" />}
+          </button>
+          <button
+            type="button"
+            onClick={() => setTheme("light")}
+            className={`flex items-center gap-3 border rounded-xl px-4 py-3 flex-1 cursor-pointer transition-colors ${
+              theme === "light"
+                ? "bg-[#202221] border-primary-400/30"
+                : "bg-transparent border-gray-850"
+            }`}
+          >
+            <div className={`w-4 h-4 rounded-full border-2 ${
+              theme === "light" ? "bg-white border-primary-400" : "bg-transparent border-gray-400"
+            }`} />
+            <span className={`text-sm font-medium ${theme === "light" ? "text-white" : "text-gray-400"}`}>
+              {t("lightMode")}
+            </span>
+            {theme === "light" && <Check size={14} className="text-primary-400 ml-auto" />}
+          </button>
         </div>
       </Section>
 
       {/* Display density */}
       <Section
-        title="Display Density"
-        description="Adjust how compact or spacious the interface feels"
+        title={t("displayDensity")}
+        description={t("densityDesc")}
       >
         <div className="grid grid-cols-3 gap-3">
           {DENSITIES.map((d) => (
@@ -1027,7 +1041,7 @@ function AppearanceTab() {
               className={`flex flex-col gap-1.5 rounded-xl border p-4 text-left transition-colors ${
                 density === d.value
                   ? "border-primary-400/50 bg-primary-400/5"
-                  : "border-gray-800 hover:border-gray-700"
+                  : "border-gray-850 hover:border-gray-700"
               }`}
             >
               <LayoutGrid
@@ -1041,10 +1055,10 @@ function AppearanceTab() {
                   density === d.value ? "text-white" : "text-gray-400"
                 }`}
               >
-                {d.label}
+                {d.value === "compact" ? t("compact") : d.value === "comfortable" ? t("comfortable") : t("spacious")}
               </span>
               <span className="text-xs text-gray-600 leading-snug">
-                {d.description}
+                {d.value === "compact" ? t("compactDesc") : d.value === "comfortable" ? t("comfortableDesc") : t("spaciousDesc")}
               </span>
             </button>
           ))}
@@ -1053,10 +1067,10 @@ function AppearanceTab() {
 
       {/* Language */}
       <Section
-        title="Language & Region"
-        description="Set your preferred language and timezone"
+        title={t("langRegion")}
+        description={t("langDesc")}
       >
-        <Field label="Language" htmlFor="language">
+        <Field label={t("language")} htmlFor="language">
           <div className="relative">
             <Globe
               size={15}
@@ -1065,19 +1079,16 @@ function AppearanceTab() {
             <select
               id="language"
               value={language}
-              onChange={(e) => setLanguage(e.target.value)}
+              onChange={(e) => setLanguage(e.target.value as any)}
               className={`${selectClass} pl-9`}
             >
-              {LANGUAGES.map((l) => (
-                <option key={l.value} value={l.value}>
-                  {l.label}
-                </option>
-              ))}
+              <option value="en">English</option>
+              <option value="fr">Français</option>
             </select>
           </div>
         </Field>
 
-        <Field label="Timezone" htmlFor="timezone">
+        <Field label={t("timezone")} htmlFor="timezone">
           <div className="relative">
             <Clock
               size={15}
@@ -1099,8 +1110,7 @@ function AppearanceTab() {
         </Field>
 
         <p className="text-xs text-gray-600">
-          Language and timezone preferences are saved locally and will be
-          applied in a future update.
+          {t("langNote")}
         </p>
       </Section>
     </>

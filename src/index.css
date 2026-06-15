@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-primary-50: #eefdf6;
   --color-primary-100: #d4fae7;
@@ -22,8 +24,36 @@
   --color-accent-tan-hover: #d2ad83;
 }
 
+:root {
+  --bg-app: #f3f4f6; /* light gray bg */
+  --bg-sidebar: #ffffff; /* white sidebar */
+  --bg-card: #ffffff; /* white cards */
+  --bg-input: #e5e7eb; /* input bg */
+  --bg-input-hover: #d1d5db;
+  --border-main: #d1d5db;
+  --border-secondary: #e5e7eb;
+  --text-main: #111827; /* gray-900 */
+  --text-muted: #374151; /* gray-800 */
+  --text-dim: #6b7280; /* gray-500 */
+}
+
+.dark {
+  --bg-app: #121413;
+  --bg-sidebar: #161616;
+  --bg-card: #1a1d1b;
+  --bg-input: #202221;
+  --bg-input-hover: #2e3230;
+  --border-main: #1f2937;
+  --border-secondary: #111827;
+  --text-main: #f9fafb;
+  --text-muted: #9ca3af;
+  --text-dim: #6b7280;
+}
+
 body {
-  @apply bg-[#121413] text-gray-100 antialiased;
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  @apply antialiased transition-colors duration-200;
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
@@ -34,11 +64,11 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #161616;
+  background: var(--bg-sidebar);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2e3230;
+  background: var(--border-main);
   border-radius: 3px;
 }
 
@@ -46,3 +76,93 @@ body {
   background: #3ddc97;
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   GLOBAL LIGHT MODE OVERRIDES
+   Automatically remaps hardcoded dark theme colors when NOT in dark mode.
+   This avoids touching all 14 views files directly and reduces regression risk.
+   ───────────────────────────────────────────────────────────────────────────── */
+:root:not(.dark) {
+  /* Background Overrides */
+  .bg-\[\#121413\] {
+    background-color: var(--bg-app) !important;
+  }
+  .bg-\[\#161616\] {
+    background-color: var(--bg-sidebar) !important;
+  }
+  .bg-\[\#1a1d1b\] {
+    background-color: var(--bg-card) !important;
+  }
+  .bg-\[\#202221\] {
+    background-color: var(--bg-input) !important;
+  }
+  .bg-\[\#1a1d1b\]\/60 {
+    background-color: rgba(255, 255, 255, 0.6) !important;
+  }
+  .bg-\[\#1f2623\] {
+    background-color: #ecfdf5 !important;
+  }
+  
+  /* Hover Overrides */
+  .hover\:bg-\[\#2e3230\]:hover {
+    background-color: var(--bg-input-hover) !important;
+  }
+  .hover\:bg-\[\#1a1d1b\]\/40:hover {
+    background-color: var(--bg-input) !important;
+  }
+  .hover\:bg-rose-950\/20:hover {
+    background-color: #fee2e2 !important;
+  }
+  
+  /* Border Overrides */
+  .border-gray-900 {
+    border-color: var(--border-main) !important;
+  }
+  .border-gray-900\/60 {
+    border-color: var(--border-main) !important;
+  }
+  .border-gray-900\/40 {
+    border-color: var(--border-secondary) !important;
+  }
+  .border-gray-900\/30 {
+    border-color: var(--border-secondary) !important;
+  }
+  .border-gray-800 {
+    border-color: var(--border-secondary) !important;
+  }
+  .border-gray-800\/80 {
+    border-color: var(--border-main) !important;
+  }
+  .border-primary-400\/20 {
+    border-color: #86efac !important;
+  }
+  .border-primary-400\/30 {
+    border-color: #4ade80 !important;
+  }
+  
+  /* Text Overrides */
+  .text-white:not(.text-white-fixed, .bg-primary-400 *, .stroke-\[2\.5\], .bg-emerald-950 *, button, button *, a.bg-primary-400 *, a.bg-emerald-950 *, .text-emerald-400) {
+    color: var(--text-main) !important;
+  }
+  .text-gray-100 {
+    color: var(--text-main) !important;
+  }
+  .text-gray-200 {
+    color: var(--text-main) !important;
+  }
+  .text-gray-300 {
+    color: var(--text-muted) !important;
+  }
+  .text-gray-400 {
+    color: var(--text-muted) !important;
+  }
+  .text-gray-500 {
+    color: var(--text-dim) !important;
+  }
+  
+  /* Specific Component Tweak (Emerald initials container) */
+  .bg-emerald-950 {
+    background-color: #d1fae5 !important;
+    color: #065f46 !important;
+    border-color: #a7f3d0 !important;
+  }
+}
